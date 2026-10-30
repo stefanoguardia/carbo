@@ -1,0 +1,18 @@
+{
+  "name": "Carbô — plano de gel para a prova",
+  "short_name": "Carbô",
+  "description": "Monta sua estratégia de gel de carboidrato: quantos sachês, de quanto em quanto tempo e qual gel comprar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E8EBE5",
+  "theme_color": "#E8EBE5",
+  "lang": "pt-BR",
+  "categories": ["health", "sports", "lifestyle"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

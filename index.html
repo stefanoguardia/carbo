@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Carbô monta sua estratégia de gel de carboidrato para a prova: quantos sachês, de quanto em quanto tempo e qual gel comprar.">
+<meta name="theme-color" content="#E8EBE5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101316" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carbô">
+<meta property="og:title" content="Carbô">
+<meta property="og:description" content="Seus 3 géis para a prova, com o plano de sachês minuto a minuto.">
+<meta property="og:type" content="website">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Carbô</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@600;700;800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: embalagem esportiva — blocos de cor cheia, numeral gigante sangrando, dados em mono */
+:root{
+  --bg:#E8EBE5; --surf:#FFFFFF; --sunk:#DCE0D8;
+  --ink:#13171A; --ink2:#4C565C; --ink3:#7C868C;
+  --line:#CBD1C8;
+  --p1:#1536E8; --p2:#0B8F64; --p3:#D55A06;
+  --warn:#B32317; --warn-s:#F8E3E1;
+  --on:#FFFFFF;
+  --f-dis:"Bebas Neue","Impact",sans-serif;
+  --f-head:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Figtree","Helvetica Neue",Arial,sans-serif;
+  --f-data:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101316; --surf:#191E22; --sunk:#222930;
+  --ink:#ECEFF1; --ink2:#A7B1B8; --ink3:#78838A;
+  --line:#2D353C;
+  --p1:#5C7BFF; --p2:#35C195; --p3:#FF9144;
+  --warn:#F08478; --warn-s:#331714;
+  --on:#0B0E10;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#101316; --surf:#191E22; --sunk:#222930;
+  --ink:#ECEFF1; --ink2:#A7B1B8; --ink3:#78838A;
+  --line:#2D353C;
+  --p1:#5C7BFF; --p2:#35C195; --p3:#FF9144;
+  --warn:#F08478; --warn-s:#331714;
+  --on:#0B0E10;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surf)}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 56px}
+h2,h3,h4{font-family:var(--f-head);margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+.mono{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:29;background:var(--surf);border-bottom:1px solid var(--line)}
+.bar-in{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:11px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mark{font-family:var(--f-dis);font-size:27px;letter-spacing:.02em;line-height:1;display:flex;align-items:center;gap:7px}
+.mark i{width:9px;height:21px;background:var(--p1);display:block;transform:skewX(-13deg)}
+.bar small{font-family:var(--f-data);font-size:10.5px;color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+.rail{height:4px;background:var(--sunk)}
+.rail span{display:block;height:100%;background:var(--p1);width:0;transition:width .4s cubic-bezier(.3,.9,.3,1)}
+
+/* perguntas */
+.step{padding-block:26px 0;animation:in .4s cubic-bezier(.2,.8,.3,1)}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.eyebrow{font-family:var(--f-data);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--p1);font-weight:600}
+.q{font-family:var(--f-head);font-size:28px;font-weight:800;line-height:1.1;margin-block:10px 0;letter-spacing:-.028em}
+.hint{color:var(--ink2);font-size:14.5px;margin-top:9px}
+.opts{display:grid;gap:8px;margin-top:20px}
+.opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--surf);border:2px solid var(--line);
+  border-radius:12px;padding:14px;transition:border-color .14s,transform .14s}
+.opt:hover{border-color:var(--ink3)}
+.opt:active{transform:scale(.985)}
+.opt[aria-pressed="true"]{border-color:var(--p1)}
+.opt .k{font-family:var(--f-dis);font-size:25px;line-height:1;color:var(--p1);min-width:52px;text-align:center;flex:none;letter-spacing:.02em}
+.opt[aria-pressed="true"] .k{color:var(--on);background:var(--p1);border-radius:8px;padding:8px 6px 5px}
+.opt .t{font-family:var(--f-head);font-weight:700;font-size:16px;display:block}
+.opt .d{font-size:13.5px;color:var(--ink2);line-height:1.35;display:block;margin-top:2px}
+.field{margin-top:20px}
+.field input{width:100%;font-family:var(--f-data);font-size:19px;background:var(--surf);color:var(--ink);
+  border:2px solid var(--line);border-radius:12px;padding:15px;text-align:center}
+/* slider de tempo */
+.sl-wrap{margin-top:26px;background:var(--surf);border:2px solid var(--line);border-radius:14px;padding:20px 18px}
+.sl-val{text-align:center}
+.sl-val b{font-family:var(--f-dis);font-size:58px;line-height:.85;color:var(--p1);display:block}
+.sl-val small{font-family:var(--f-data);font-size:12px;color:var(--ink2);display:block;margin-top:8px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;
+  background:var(--sunk);outline:none;margin-top:22px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;
+  border-radius:50%;background:var(--p1);border:4px solid var(--surf);box-shadow:0 1px 5px rgba(0,0,0,.28);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--p1);
+  border:4px solid var(--surf);box-shadow:0 1px 5px rgba(0,0,0,.28);cursor:pointer}
+.sl-ends{display:flex;justify-content:space-between;font-family:var(--f-data);font-size:11px;color:var(--ink3);margin-top:9px}
+
+/* trilho da prova */
+.track{position:relative;padding-left:60px;margin-top:4px}
+.track::before{content:"";position:absolute;left:24px;top:10px;bottom:10px;width:2px;background:var(--line)}
+.node{position:relative;padding-bottom:12px}
+.node .pin{position:absolute;left:-60px;top:0;width:48px;text-align:center}
+.node .dot{width:13px;height:13px;border-radius:50%;background:var(--p1);border:3px solid var(--bg);margin:4px auto 0;box-shadow:0 0 0 2px var(--p1)}
+.node .km{font-family:var(--f-data);font-size:12.5px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.node .clock{font-family:var(--f-data);font-size:10px;color:var(--ink3)}
+.node .card{background:var(--surf);border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.node .card b{font-family:var(--f-head);font-size:14.5px;font-weight:700;display:block}
+.node .card p{font-size:12.5px;color:var(--ink2);margin-top:2px}
+.node.edge .dot{background:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.node.edge .card{background:transparent;border-style:dashed}
+.node.caf .dot{background:var(--p3);box-shadow:0 0 0 2px var(--p3)}
+.node.caf .card{border-color:var(--p3)}
+.minichip{display:inline-block;font-family:var(--f-data);font-size:10px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 7px;border-radius:5px;margin-top:7px;background:color-mix(in srgb,var(--p3) 18%,transparent);color:var(--p3)}
+
+/* kit */
+.kit{background:var(--sunk);border-radius:14px;padding:6px 16px 16px}
+.kit .kr{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-block:11px;font-size:14.5px}
+.kit .kr+.kr{border-top:1px solid var(--line)}
+.kit .kr b{font-family:var(--f-data);font-weight:600;font-variant-numeric:tabular-nums;flex:none}
+
+/* teste da balança */
+details.bal{background:var(--surf);border:2px solid var(--line);border-radius:14px;padding:0 16px;margin-top:10px}
+details.bal summary{cursor:pointer;padding:14px 0;font-family:var(--f-head);font-weight:700;font-size:14.5px;list-style:none}
+details.bal summary::-webkit-details-marker{display:none}
+details.bal summary::after{content:" ＋";color:var(--p1)}
+details.bal[open] summary::after{content:" −"}
+details.bal .inner{padding-bottom:16px;border-top:1px solid var(--line);padding-top:14px}
+.bal-f{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bal-f label{flex:1;min-width:92px;font-size:12px;color:var(--ink2)}
+.bal-f input{width:100%;font-family:var(--f-data);font-size:15px;background:var(--bg);color:var(--ink);
+  border:2px solid var(--line);border-radius:9px;padding:9px;margin-top:4px}
+.bal-out{font-family:var(--f-data);font-size:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);color:var(--ink)}
+.field input:focus-visible,.opt:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--p1);outline-offset:2px}
+.nav{display:flex;gap:9px;margin-top:24px}
+.btn{flex:1;border:0;border-radius:12px;padding:16px;font-family:var(--f-head);font-weight:800;font-size:16px;background:var(--p1);color:var(--on);letter-spacing:-.01em}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.btn.ghost{flex:0 0 auto;background:transparent;border:2px solid var(--line);color:var(--ink2);padding-inline:18px}
+
+/* varredura */
+.scan{padding-block:70px;text-align:center}
+.scan .n{font-family:var(--f-dis);font-size:76px;line-height:.9;color:var(--p1)}
+.scan .l{font-family:var(--f-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin-top:10px;min-height:1.4em}
+
+/* resultado */
+.hero{padding-block:24px 0}
+.hero .ctx{font-family:var(--f-data);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+.hero h2{font-family:var(--f-dis);font-size:56px;line-height:.88;letter-spacing:.01em;margin-top:8px;font-weight:400}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tag{font-family:var(--f-data);font-size:11px;letter-spacing:.04em;background:var(--sunk);color:var(--ink2);border-radius:20px;padding:5px 11px}
+
+.sec{margin-top:32px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px}
+.sec-h h3{font-size:13px;font-weight:700;font-family:var(--f-data);letter-spacing:.13em;text-transform:uppercase;color:var(--ink3)}
+
+/* escada do intestino */
+.ladder{background:var(--surf);border:2px solid var(--line);border-radius:14px;padding:18px}
+.ladder .top{display:flex;align-items:flex-end;gap:12px}
+.ladder .big{font-family:var(--f-dis);font-size:62px;line-height:.82;color:var(--p1)}
+.ladder .u{font-family:var(--f-data);font-size:12px;color:var(--ink2);padding-bottom:7px}
+.bars{display:flex;gap:4px;align-items:flex-end;height:54px;margin-top:16px}
+.bars i{flex:1;background:var(--sunk);border-radius:2px;display:block;position:relative}
+.bars i.on{background:var(--p1)}
+.bars i.goal{background:repeating-linear-gradient(45deg,var(--p1),var(--p1) 3px,transparent 3px,transparent 6px);opacity:.55}
+.lad-lab{display:flex;justify-content:space-between;font-family:var(--f-data);font-size:10.5px;color:var(--ink3);margin-top:7px}
+.ladder p{font-size:14px;color:var(--ink2);margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+
+/* pódio */
+.pod{border-radius:16px;overflow:hidden;margin-bottom:12px;background:var(--surf);border:2px solid var(--line)}
+.pod-top{padding:16px 18px 14px;color:var(--on);position:relative;overflow:hidden}
+.pod-top .rk{position:absolute;right:10px;top:-14px;font-family:var(--f-dis);font-size:104px;line-height:1;opacity:.22}
+.pod-top .role{font-family:var(--f-data);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;opacity:.85}
+.pod-top .nm{font-family:var(--f-head);font-size:23px;font-weight:800;line-height:1.1;margin-top:5px;letter-spacing:-.025em;position:relative}
+.pod-top .sp{font-family:var(--f-data);font-size:12.5px;margin-top:7px;opacity:.9;position:relative;font-variant-numeric:tabular-nums}
+.pod1 .pod-top{background:var(--p1)} .pod2 .pod-top{background:var(--p2)} .pod3 .pod-top{background:var(--p3)}
+.pod-body{padding:16px 18px}
+.pod-body .why{font-size:14.5px;color:var(--ink2);line-height:1.5}
+.plan{display:flex;gap:8px;margin-top:14px}
+.plan div{flex:1;background:var(--sunk);border-radius:10px;padding:11px 10px;text-align:center}
+.plan b{display:block;font-family:var(--f-data);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.plan small{display:block;font-size:10.5px;color:var(--ink2);margin-top:4px;letter-spacing:.03em}
+.price{font-family:var(--f-data);font-size:12px;color:var(--ink3);margin-top:12px}
+.buys{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.buy{display:block;text-align:center;border:2px solid var(--line);border-radius:10px;padding:12px 8px;text-decoration:none;
+  color:var(--ink);font-family:var(--f-head);font-weight:700;font-size:14px}
+.buy:hover{border-color:var(--p1)}
+
+/* evite */
+.avoid{background:var(--warn-s);border-radius:14px;padding:6px 16px 14px}
+.av{padding-block:12px;display:flex;gap:12px;align-items:flex-start}
+.av+.av{border-top:1px solid color-mix(in srgb,var(--warn) 22%,transparent)}
+.av .x{font-family:var(--f-dis);font-size:23px;color:var(--warn);line-height:1;flex:none;width:20px}
+.av b{font-family:var(--f-head);font-size:15.5px;font-weight:700;display:block}
+.av span{font-size:13.5px;color:var(--ink2);display:block;margin-top:2px;line-height:1.4}
+
+/* afinar */
+.tune{background:var(--surf);border:2px solid var(--line);border-radius:14px;padding:16px}
+.tune .row{padding-block:13px}
+.tune .row+.row{border-top:1px solid var(--line)}
+.tune .lab{font-family:var(--f-head);font-size:14.5px;font-weight:700;margin-bottom:9px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:2px solid var(--line);background:transparent;border-radius:20px;padding:7px 13px;font-size:13.5px;font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--p1);background:var(--p1);color:var(--on)}
+.tune input[type=number]{width:96px;font-family:var(--f-data);font-size:15px;background:var(--bg);color:var(--ink);
+  border:2px solid var(--line);border-radius:9px;padding:9px 11px}
+
+/* story */
+.story{aspect-ratio:9/16;border-radius:18px;overflow:hidden;background:var(--ink);color:var(--bg);padding:26px 22px;
+  display:flex;flex-direction:column;justify-content:space-between;position:relative}
+.story .sm{font-family:var(--f-dis);font-size:25px;display:flex;align-items:center;gap:6px;line-height:1}
+.story .sm i{width:8px;height:19px;background:var(--p1);display:block;transform:skewX(-13deg)}
+.story .sr{font-family:var(--f-data);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;opacity:.55}
+.story h4{font-family:var(--f-dis);font-size:50px;line-height:.86;margin-top:8px;font-weight:400}
+.story .pick{margin-top:16px;border-top:1px solid rgba(128,128,128,.4);padding-top:13px}
+.story .pick b{font-family:var(--f-head);font-size:18px;font-weight:800;display:block;letter-spacing:-.02em}
+.story .pick span{font-family:var(--f-data);font-size:11.5px;opacity:.6}
+.story .sg{display:flex;gap:18px;margin-top:16px}
+.story .sg div b{font-family:var(--f-dis);font-size:36px;line-height:.9;display:block;color:var(--p1)}
+.story .sg div small{font-size:10px;opacity:.55;letter-spacing:.07em;text-transform:uppercase}
+.story .ft{font-family:var(--f-data);font-size:10.5px;opacity:.4}
+
+.note{font-size:13.5px;color:var(--ink2);background:var(--surf);border-left:4px solid var(--p2);border-radius:0 10px 10px 0;padding:13px 15px;line-height:1.45}
+.legal{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);line-height:1.5}
+.legal p+p{margin-top:7px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+
+<style>
+/* no artifact o esqueleto já dava isso; aqui precisa ser explícito */
+html{-webkit-text-size-adjust:100%}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-in"><div class="mark"><i></i>Carbô</div><small id="barnote">3 géis pra sua prova</small></div>
+  <div class="rail"><span id="fill"></span></div>
+</div>
+<div class="wrap"><div id="app"></div></div>
+
+<script>
+/* ===== AFILIADOS — trocar pelos IDs reais ===== */
+const CFG = { amazonTag:"carbo-20", mlTool:"" };
+const amz = q => "https://www.amazon.com.br/s?k="+encodeURIComponent(q)+"&tag="+encodeURIComponent(CFG.amazonTag);
+const ml  = q => "https://lista.mercadolivre.com.br/"+encodeURIComponent(q).replace(/%20/g,"-")+(CFG.mlTool?"?matt_tool="+encodeURIComponent(CFG.mlTool):"");
+
+/* ===== CATÁLOGO — base técnica: Gel Book, Carla Bogéa, revisão 2026 =====
+   c carboidrato g · na sódio mg (null = não informado) · r proporção · pal palatinose
+   hid hidrogel · caf tem versão com cafeína · pt faixa de preço 1-3 · tx textura · sb sabores · cl clean label */
+const GEIS=[
+{id:"z2ed", n:"Z2 Every day",             c:25,na:null,r:null,   pal:1,hid:0,caf:1,pt:1,tx:"fluido",sb:["doce"],cl:0,f:["pre","dur"],d:"maltodextrina, frutose e palatinose"},
+{id:"btd",  n:"BT Gel Dobro",             c:20,na:null,r:null,   pal:1,hid:0,caf:0,pt:1,tx:"fluido",sb:["doce"],cl:1,f:["pre"],      d:"palatinose, beterraba e xarope de tapioca"},
+{id:"vita", n:"Endurance Gel Vitafor",    c:20,na:null,r:null,   pal:0,hid:0,caf:0,pt:1,tx:"fluido",sb:["doce"],cl:0,f:["pre","dur"],d:"maltodextrina, frutose e d-ribose"},
+{id:"carbs",n:"Gel Carbs Dobro",          c:21,na:null,r:null,   pal:0,hid:0,caf:0,pt:1,tx:"fluido",sb:["neutro"],cl:1,f:["pre","dur"],d:"maltodextrina pura"},
+{id:"cup",  n:"Carb Up Super Fórmula",    c:20,na:null,r:null,   pal:0,hid:0,caf:0,pt:1,tx:"fluido",sb:["doce"],cl:0,f:["pre","dur"],d:"maltodextrina, frutose e dextrose"},
+{id:"momb", n:"Gel Mombora",              c:21,na:null,r:null,   pal:0,hid:0,caf:0,pt:2,tx:"denso", sb:["doce"],cl:1,f:["pre"],      d:"néctar de coco e demerara orgânico"},
+{id:"4lab", n:"Energy Gel 4Labs",         c:23,na:50,  r:"2:1",  pal:0,hid:0,caf:0,pt:1,tx:"fluido",sb:["doce"],cl:0,f:["pre","dur"],d:"2:1 maltodextrina e frutose"},
+{id:"4bal", n:"Energy Gel Balas 4Labs",   c:25,na:150, r:"1:0,8",pal:0,hid:0,caf:0,pt:1,tx:"medio", sb:["doce"],cl:0,f:["pre","dur"],d:"1:0,8 maltodextrina e frutose, refil"},
+{id:"ts",   n:"True Source Intra Treino", c:25,na:110, r:"1:0,8",pal:0,hid:0,caf:1,pt:2,tx:"fluido",sb:["doce","mentol"],cl:1,f:["pre","dur"],d:"1:0,8 maltodextrina e frutose"},
+{id:"z2lu", n:"Z2 Load up",               c:25,na:200, r:"1:0,8",pal:0,hid:0,caf:1,pt:2,tx:"fluido",sb:["doce"],cl:0,f:["dur"],     d:"1:0,8 glicose e frutose, 100 a 300 mg de sódio"},
+{id:"forc", n:"Gel Forcell",              c:23,na:200, r:"2:1",  pal:0,hid:0,caf:1,pt:2,tx:"fluido",sb:["doce"],cl:0,f:["dur"],     d:"2:1 glicose e frutose, com taurina na versão cafeína"},
+{id:"p25",  n:"Probiótica 25 Pro",        c:25,na:300, r:"1:0,8",pal:0,hid:0,caf:1,pt:2,tx:"fluido",sb:["doce","citrico"],cl:0,f:["dur"],d:"1:0,8 glicose e frutose, 214 a 389 mg de sódio"},
+{id:"vo2",  n:"Integral Médica VO2 C30",  c:31,na:106, r:"1:0,8",pal:0,hid:0,caf:1,pt:1,tx:"fluido",sb:["neutro","doce"],cl:0,f:["dur"],d:"1:0,8 glicose e frutose, neutro ou com sabor"},
+{id:"dux",  n:"Energy Gel Dux",           c:23,na:153, r:null,   pal:1,hid:0,caf:0,pt:2,tx:"medio", sb:["doce"],cl:0,f:["dur"],     d:"carboidrato pré-digerido, contém palatinose"},
+{id:"hdob", n:"Hidrogel Dobro",           c:25,na:100, r:"1:0,8",pal:0,hid:1,caf:1,pt:2,tx:"denso", sb:["neutro","mentol"],cl:1,f:["dur"],d:"hidrogel de alginato, sabor neutro"},
+{id:"hxtr", n:"Hidrogel Xtratus",         c:40,na:300, r:"1:0,8",pal:0,hid:1,caf:1,pt:3,tx:"denso", sb:["neutro"],cl:1,f:["dur"],   d:"hidrogel, sem conservantes"},
+{id:"pace", n:"HidroGel Pace it",         c:30,na:210, r:"1:0,8",pal:0,hid:1,caf:1,pt:3,tx:"denso", sb:["doce","citrico"],cl:0,f:["dur"],d:"hidrogel, 80 a 342 mg de sódio"},
+{id:"maur", n:"Gel Maurten",              c:40,na:30,  r:"1:0,8",pal:0,hid:1,caf:1,pt:3,tx:"denso", sb:["neutro"],cl:1,f:["dur"],   d:"hidrogel, sódio baixo para o nosso clima"},
+{id:"226f", n:"226ers High Fructose",     c:55,na:null,r:"1:0,8",pal:0,hid:0,caf:0,pt:3,tx:"denso", sb:["citrico"],cl:0,f:["dur"],  d:"1:0,8 maltodextrina e frutose, sachê grande"},
+{id:"226e", n:"226ers High Energy",       c:50,na:175, r:null,   pal:0,hid:0,caf:0,pt:3,tx:"denso", sb:["citrico","mentol"],cl:0,f:["dur"],d:"ciclodextrina, glicose e sacarose"},
+{id:"bt400",n:"BT 400 Nitrato Dobro",     c:21,na:null,r:null,   pal:0,hid:0,caf:0,pt:2,tx:"fluido",sb:["neutro"],cl:1,f:["dur"],   d:"400 mg de nitrato, para provas longas"}
+];
+const FAIXA = {1:"até R$ 8",2:"R$ 8 a 13",3:"acima de R$ 13"};
+
+/* ===== PERGUNTAS ===== */
+const PASSOS=[
+{k:"dist",e:"A prova",q:"Qual distância você vai correr?",opts:[
+ {v:"5",   k:"5K", t:"5 km",            d:"Prova curta e rápida"},
+ {v:"10",  k:"10K",t:"10 km",           d:"Entre o tiro e o fundo"},
+ {v:"21",  k:"21K",t:"Meia maratona",   d:"Onde o combustível começa a contar"},
+ {v:"42",  k:"42K",t:"Maratona",        d:"Aqui a estratégia vale minutos"},
+ {v:"ultra",k:"42+",t:"Ultra ou trail", d:"Gel alternado com comida de verdade"}]},
+{k:"tempo",e:"O alvo",q:"Em quanto tempo você termina?",slider:true,
+ hint:"Arraste até o seu tempo. Se não souber, use o que você fez numa prova parecida."},
+{k:"exp",e:"Seu intestino",q:"Você já treina tomando gel?",
+ hint:"Tolerância a carboidrato se treina, igual músculo. É isso que define quanto você aguenta por hora hoje.",opts:[
+ {v:"nunca",k:"0",  t:"Nunca tomei, ou quase",   d:"Começamos leve e sem cafeína"},
+ {v:"as",   k:"½",  t:"Às vezes, em longão",     d:"Já tem alguma tolerância construída"},
+ {v:"sim",  k:"1",  t:"Em todo treino longo",    d:"Estômago treinado, dá pra ir alto"}]},
+{k:"atual",e:"Seu intestino",q:"Quanto você costuma tomar por hora hoje?",when:r=>r.exp==="sim",opts:[
+ {v:"40",k:"40", t:"Cerca de 40 g por hora", d:"Um sachê a cada 35 ou 40 minutos"},
+ {v:"60",k:"60", t:"Cerca de 60 g por hora", d:"Dois sachês por hora, mais ou menos"},
+ {v:"80",k:"80", t:"80 g ou mais por hora",  d:"Você já treinou bem esse estômago"},
+ {v:"?", k:"?",  t:"Nunca contei",           d:"Partimos de uma estimativa segura"}]},
+{k:"mal",e:"Seu intestino",q:"Já passou mal tomando gel?",
+ hint:"Estufado, enjoo, cólica ou aquela urgência de procurar banheiro.",opts:[
+ {v:"nao", k:"Não",t:"Nunca aconteceu",     d:"Catálogo aberto pra você"},
+ {v:"as",  k:"1x", t:"Uma vez ou outra",    d:"Corto a palatinose do seu plano"},
+ {v:"sim", k:"Sim",t:"Acontece com frequência", d:"Vou direto pro que menos pesa no estômago"}]},
+{k:"suor",e:"Seu suor",q:"Como você sua correndo?",
+ hint:"Se já reparou em marca branca de sal na pele ou no boné depois do longão, isso conta.",opts:[
+ {v:"low", k:"-",  t:"Suo pouco",            d:"Roupa seca rápido, sem marca de sal"},
+ {v:"mid", k:"+",  t:"Suo normal",           d:"Camisa encharca, às vezes aparece sal"},
+ {v:"high",k:"++", t:"Suo muito",            d:"Pinga, e fica marca branca na roupa ou no boné"}]},
+{k:"calor",e:"O dia",q:"Como vai estar o tempo?",opts:[
+ {v:"sim", k:"28°",t:"Quente ou abafado", d:"Mais sódio, gel fluido, sabor refrescante"},
+ {v:"nao", k:"20°",t:"Ameno",             d:"Clima bom pra correr"},
+ {v:"frio",k:"12°",t:"Frio",              d:"Você perde menos sal, mas bebe menos também"}]}
+];
+/* faixas do slider por distância: mínimo, máximo e passo em minutos */
+const FAIXA_T = {"5":[14,60,1],"10":[28,120,1],"21":[60,240,1],"42":[125,420,5],"ultra":[240,1800,10]};
+const PADRAO_T = {"5":28,"10":58,"21":130,"42":270,"ultra":720};
+
+/* ===== MOTOR ===== */
+const R = {caf:"nao", tx:"tanto", sb:"tanto", pt:3, cl:"tanto", quebrou:""};
+const DIST={"5":{l:"5 km",km:5},"10":{l:"10 km",km:10},"21":{l:"Meia maratona",km:21},"42":{l:"Maratona",km:42},"ultra":{l:"Ultra",km:50}};
+const IDEAL={"5":0,"10":30,"21":60,"42":90,"ultra":90};
+const TETO ={"5":0,"10":30,"21":90,"42":100,"ultra":120};
+
+function parseTempo(s){
+  s=(s||"").trim().replace(",",":").replace("h",":").replace(/\s/g,"");
+  if(!s) return null;
+  if(s.includes(":")){const[a,b]=s.split(":");const m=(parseInt(a,10)||0)*60+(parseInt(b,10)||0);return m>0?m:null;}
+  const n=parseInt(s,10); if(!n) return null; return n<15?n*60:n;
+}
+const fmt=m=>{const h=Math.floor(m/60),r=Math.round(m%60);return h?h+"h"+String(r).padStart(2,"0"):r+"min";};
+
+function motor(a){
+  const D=DIST[a.dist], T=a.tempo, horas=T/60;
+  const fatiaGel = a.dist==="ultra" ? .6 : 1;
+
+  /* onde a pessoa está hoje na escada do capítulo 7 */
+  let base = a.exp==="nunca" ? 30 : a.exp==="as" ? 50 : (a.atual && a.atual!=="?" ? +a.atual : 60);
+  if(a.mal==="sim") base = Math.min(base, 45);
+  const ideal = IDEAL[a.dist];
+  const ghPlano = Math.min(base, TETO[a.dist]);
+  const semanas = ghPlano < ideal ? Math.ceil((ideal-ghPlano)/10)*2 : 0;
+
+  /* sódio */
+  let naAlvo = a.suor==="low"?400:a.suor==="mid"?700:1000;
+  if(a.calor==="sim") naAlvo += 150; else if(a.calor==="frio") naAlvo -= 100;
+  if(a.naMedido) naAlvo = a.naMedido;   /* teste da balança manda mais que a estimativa */
+  naAlvo = Math.max(250, Math.round(naAlvo/50)*50);
+
+  const precisaMix = ghPlano > 60;
+  const motivos = new Map();
+  const fase = a.dist==="5" ? "pre" : "dur";   /* em 5 km o gel é só antes da largada */
+
+  /* filtros duros: o que é tecnicamente errado pro perfil */
+  const duros = GEIS.filter(g=>{
+    if(!g.f.includes(fase)) return false;
+    if(a.mal!=="nao" && g.pal){ motivos.set(g.id, "tem palatinose, e você já sentiu o estômago pesar com gel"); return false; }
+    if(precisaMix && !g.r){ motivos.set(g.id, "é carboidrato único e não sustenta os "+ghPlano+" g por hora do seu plano"); return false; }
+    if(a.dist==="ultra" && g.c<25){ motivos.set(g.id, "sachê pequeno demais pra uma prova dessa duração"); return false; }
+    return true;
+  });
+  /* filtros moles: preferência, não erro. Se sobrar pouco, voltam marcados */
+  const querCaf = a.caf!=="nao";
+  const mole = g => (g.pt<=a.pt) && !(querCaf && !g.caf);
+  let vivos = duros.filter(mole);
+  const forçados = [];
+  if(vivos.length < 3){
+    duros.filter(g=>!mole(g)).forEach(g=>{ forçados.push(g.id); vivos.push(g); });
+  } else {
+    duros.filter(g=>!mole(g)).forEach(g=>{
+      if(!motivos.has(g.id)) motivos.set(g.id, g.pt>a.pt ? "fica acima da faixa de preço que você escolheu"
+                                                        : "não tem versão com cafeína, e você pediu cafeína");
+    });
+  }
+
+  const pontuados = vivos.map(g=>{
+    let s=0;
+    if(ghPlano>0){
+      const iv=(g.c/ghPlano)*60;
+      s += (iv>=22&&iv<=42) ? 30 : (iv>=18&&iv<=50) ? 14 : 0;
+    }
+    if(g.na!=null && ghPlano>0){
+      const gap=Math.abs(g.na*(ghPlano/g.c)-naAlvo)/naAlvo;
+      s += gap<.35?24 : gap<.7?12 : 3;
+    } else if(g.na==null) s -= 8;
+    if(a.mal!=="nao" && g.hid) s+=28;
+    if(a.exp==="nunca" && g.c<=25) s+=14;
+    if(a.dist==="42"||a.dist==="ultra"){ if(g.hid) s+=14; if(g.r) s+=10; }
+    if(a.dist==="ultra" && g.c>=30) s+=16;
+    if(querCaf && g.caf) s+=10;
+    if(a.calor==="sim"){ if(g.na!=null&&g.na>=200) s+=10; if(g.sb.includes("mentol")) s+=8; if(g.tx==="fluido") s+=4; }
+    if(a.tx!=="tanto" && g.tx===a.tx) s+=12;
+    if(a.sb!=="tanto" && g.sb.includes(a.sb)) s+=12;
+    if(a.cl==="sim" && g.cl) s+=12;
+    s += (3-g.pt)*3;
+    if(forçados.includes(g.id)) s-=40;
+    return {g,s};
+  }).sort((x,y)=>y.s-x.s);
+
+  /* pódio com três papéis — o rótulo só é dito quando é verdade */
+  const p1 = pontuados[0]?.g;
+  const maisBarato = pontuados.find(c=>c.g!==p1 && p1 && c.g.pt < p1.pt)?.g;
+  const p2 = maisBarato || pontuados.find(c=>c.g!==p1)?.g;
+  const tranquilo = pontuados.find(c=>c.g!==p1 && c.g!==p2 && (c.g.hid || (c.g.r && !c.g.pal)))?.g;
+  const p3 = tranquilo || pontuados.find(c=>c.g!==p1 && c.g!==p2)?.g;
+  const podio = [p1,p2,p3].filter(Boolean).filter((g,i,arr)=>arr.indexOf(g)===i);
+  const papeis = ["Pra você",
+                  maisBarato ? "Mais em conta" : "Boa alternativa",
+                  tranquilo ? (tranquilo.hid ? "Estômago tranquilo" : "Terceira opção") : "Terceira opção"];
+
+  /* plano de sachês para um gel qualquer */
+  const plano = g => {
+    if(ghPlano===0) return {n:0, iv:0, gh:0};
+    const janela = T-18;
+    let n = Math.max(1, Math.round((ghPlano*horas*fatiaGel)/g.c));
+    let iv = janela/n;
+    if(iv<18){ n=Math.max(1,Math.floor(janela/18)); iv=janela/n; }
+    if(iv>45){ n=Math.max(1,Math.round(janela/45)); iv=janela/n; }
+    return {n, iv, gh: Math.round((n*g.c)/horas)};
+  };
+
+  const preGel = GEIS.filter(g=>g.f.includes("pre") && (a.mal==="nao" || !g.pal)).sort((x,y)=>y.c-x.c)[0];
+  const evite = [...motivos.entries()].map(([id,m])=>({g:GEIS.find(x=>x.id===id), m}))
+                 .filter(x=>x.g).slice(0,3);
+
+  /* dose de cafeína conforme a tolerância que a pessoa declarou */
+  const cafDose = a.caf==="alta" ? "150 a 200 mg" : "100 a 150 mg";
+
+  /* linha do tempo da prova para um gel */
+  const linha = g => {
+    const pl = plano(g), ns = [];
+    if(preGel) ns.push({t:-15, km:0, tipo:"edge", tit:preGel.n, txt:"1 sachê com goles de água, antes de largar"});
+    ns.push({t:0, km:0, tipo:"edge", tit:"Largada", txt:""});
+    const cafIdx = new Set();
+    if(querCaf && g.caf && pl.n){
+      const marca = alvo => { let b=-1,d=1e9;
+        for(let k=0;k<pl.n;k++){ const tt=pl.iv*(k+1), v=Math.abs(tt-alvo);
+          if(v<d && !cafIdx.has(k)){ d=v; b=k; } }
+        if(b>=0) cafIdx.add(b); };
+      if(a.dist==="21") marca(T-45);
+      else if(a.dist==="42"){ marca(T/2-10); marca(T-55); }
+      else if(a.dist==="ultra"){ for(let tt=180; tt<T-60; tt+=210) marca(tt); marca(T-55); }
+      else if(a.dist==="10") marca(pl.iv);
+    }
+    for(let k=0;k<pl.n;k++){
+      const t = pl.iv*(k+1);
+      ns.push({t, km:(t/T)*D.km, tipo:"gel", tit:g.n, caf:cafIdx.has(k),
+        txt:"Sachê "+(k+1)+" de "+pl.n+" · "+g.c+" g"+(g.na!=null?" · "+g.na+" mg sódio":"")});
+    }
+    ns.push({t:T, km:D.km, tipo:"edge", tit:"Chegada", txt:fmt(T)});
+    return {ns, nCaf:cafIdx.size, pl};
+  };
+
+  return {D,T,horas,ghPlano,ideal,semanas,naAlvo,podio,papeis,plano,preGel,evite,fatiaGel,forçados,
+          nVivos:duros.length, base, fase, cafDose, linha, querCaf};
+}
+
+/* ===== UI ===== */
+const app=document.getElementById("app"), fill=document.getElementById("fill"), barnote=document.getElementById("barnote");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let i=0;
+const visiveis=()=>PASSOS.filter(p=>!p.when||p.when(R));
+
+function passo(){
+  const lista=visiveis(), p=lista[i];
+  if(!p){ varrer(); return; }
+  fill.style.width=Math.round((i/lista.length)*100)+"%";
+  barnote.textContent="Pergunta "+(i+1)+" de "+lista.length;
+
+  let h='<div class="step"><div class="eyebrow">'+esc(p.e)+'</div><h2 class="q">'+esc(p.q)+"</h2>";
+  if(p.hint) h+='<p class="hint">'+esc(p.hint)+"</p>";
+  if(p.slider){
+    const [mn,mx,st]=FAIXA_T[R.dist]||[30,300,5];
+    if(!R.tempo || R.tempo<mn || R.tempo>mx) R.tempo = PADRAO_T[R.dist]||60;
+    h+='<div class="sl-wrap"><div class="sl-val"><b id="slb">'+fmt(R.tempo)+'</b><small id="sls">'+pace(R.tempo,R.dist)+'</small></div>'+
+       '<input type="range" id="sl" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+R.tempo+'">'+
+       '<div class="sl-ends"><span>'+fmt(mn)+"</span><span>"+fmt(mx)+"</span></div></div>";
+  } else if(p.input){
+    h+='<div class="field"><input id="inp" inputmode="numeric" value="'+esc(R.tempoRaw||"")+'" placeholder="'+p.input+'" autocomplete="off"></div>';
+  } else {
+    h+='<div class="opts">'+p.opts.map(o=>'<button class="opt" data-v="'+o.v+'" aria-pressed="'+(R[p.k]===o.v)+'">'+
+       '<span class="k">'+esc(o.k)+'</span><span><span class="t">'+esc(o.t)+'</span><span class="d">'+esc(o.d)+"</span></span></button>").join("")+"</div>";
+  }
+  h+='<div class="nav">'+(i>0?'<button class="btn ghost" id="back">Voltar</button>':"")+
+     '<button class="btn" id="next">'+(i===lista.length-1?"Ver meus géis":"Continuar")+"</button></div></div>";
+  app.innerHTML=h;
+
+  const next=document.getElementById("next");
+  const ok=()=>p.slider ? true : p.input ? !!parseTempo(document.getElementById("inp").value) : !!R[p.k];
+  const sync=()=>next.disabled=!ok();
+  sync();
+  const sl=document.getElementById("sl");
+  if(sl) sl.addEventListener("input",()=>{
+    R.tempo=+sl.value;
+    document.getElementById("slb").textContent=fmt(R.tempo);
+    document.getElementById("sls").textContent=pace(R.tempo,R.dist);
+  });
+  app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
+    R[p.k]=b.dataset.v;
+    app.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    sync(); setTimeout(adiante,160);
+  }));
+  const inp=document.getElementById("inp");
+  if(inp){ inp.addEventListener("input",sync); inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&ok())adiante();}); }
+  document.getElementById("back")?.addEventListener("click",()=>{i--;passo();scrollTo(0,0);});
+  next.addEventListener("click",adiante);
+}
+function pace(min,dist){
+  const km=(DIST[dist]||{km:21}).km;
+  if(dist==="ultra") return "ritmo médio estimado em 50 km";
+  const s=Math.round((min*60)/km);
+  return "ritmo de "+Math.floor(s/60)+":"+String(s%60).padStart(2,"0")+" por km";
+}
+function adiante(){
+  const p=visiveis()[i];
+  if(p.slider){ /* o slider já guardou o valor */ }
+  else if(p.input){ const v=document.getElementById("inp")?.value||""; const m=parseTempo(v); if(!m)return; R.tempo=m; R.tempoRaw=v; }
+  else if(!R[p.k]) return;
+  i++;
+  if(i>=visiveis().length) varrer(); else { passo(); scrollTo(0,0); }
+}
+
+function varrer(){
+  fill.style.width="100%"; barnote.textContent="Lendo o catálogo";
+  const rapido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(rapido){ resultado(); return; }
+  app.innerHTML='<div class="scan"><div class="n" id="cnt">0</div><div class="l" id="lbl">lendo o catálogo</div></div>';
+  scrollTo(0,0);
+  const etapas=["proporção glicose e frutose","palatinose fora","sódio contra o seu suor","tamanho do sachê","faixa de preço"];
+  let c=0, k=0;
+  const t1=setInterval(()=>{ c++; document.getElementById("cnt").textContent=c;
+    if(c%5===0 && k<etapas.length) document.getElementById("lbl").textContent=etapas[k++];
+    if(c>=GEIS.length){ clearInterval(t1); setTimeout(resultado,420); } },52);
+}
+
+function resultado(){
+  const P=motor(R);
+  barnote.textContent="Seus géis";
+  const nomeProva = R.prova || P.D.l;
+
+  let h='<div class="hero"><div class="ctx">'+esc(nomeProva)+" · alvo "+fmt(P.T)+'</div><h2>Seus 3<br>géis</h2><div class="tags">';
+  if(P.ghPlano) h+='<span class="tag">'+P.ghPlano+" g/h</span>";
+  if(P.ghPlano) h+='<span class="tag">'+P.naAlvo+" mg sódio/h</span>";
+  h+='<span class="tag">'+(R.mal==="nao"?"sem histórico de desconforto":R.mal==="as"?"estômago meio sensível":"estômago sensível")+"</span>";
+  h+='<span class="tag">'+(R.calor==="sim"?"calor":R.calor==="frio"?"frio":"clima ameno")+"</span></div></div>";
+
+  /* escada do intestino */
+  h+='<div class="sec"><div class="sec-h"><h3>A sua escada</h3></div><div class="ladder"><div class="top">'+
+     '<div class="big">'+P.ghPlano+'</div><div class="u">g de carboidrato<br>por hora, hoje</div></div>';
+  const degraus=[30,40,50,60,70,80,90,100,110,120];
+  h+='<div class="bars">'+degraus.map(d=>{
+    const alt=28+(d/120)*72;
+    const cls = d<=P.ghPlano ? "on" : (d<=P.ideal ? "goal" : "");
+    return '<i class="'+cls+'" style="height:'+alt+'%"></i>';
+  }).join("")+'</div><div class="lad-lab"><span>30</span><span>120 g/h</span></div>';
+  h+="<p>"+(P.semanas
+    ? "Pra essa distância a referência é "+P.ideal+" g por hora. Subindo 10 g a cada duas semanas, você chega lá em cerca de "+P.semanas+" semanas de treino longo. Até lá o plano trabalha com o que seu estômago aguenta hoje."
+    : P.ghPlano===0
+      ? "Nessa distância o gel durante a prova não muda resultado. O que vale é o sachê antes da largada."
+      : "Você já está na faixa que a distância pede. O plano abaixo usa isso.")+"</p></div></div>";
+
+  /* pódio */
+  h+='<div class="sec"><div class="sec-h"><h3>'+(P.fase==="pre"?"O pódio da largada":"O pódio")+
+     '</h3><span class="tag">'+GEIS.length+" géis analisados</span></div>";
+  P.podio.forEach((g,idx)=>{
+    const pl=P.plano(g);
+    h+='<div class="pod pod'+(idx+1)+'"><div class="pod-top"><div class="rk">'+(idx+1)+'</div>'+
+       '<div class="role">'+P.papeis[idx]+'</div><div class="nm">'+esc(g.n)+'</div>'+
+       '<div class="sp">'+g.c+" g carbo"+(g.na!=null?" · "+g.na+" mg sódio":" · sódio não informado")+(g.r?" · "+g.r:"")+"</div></div>";
+    h+='<div class="pod-body"><p class="why">'+esc(porque(g,P,R,idx))+"</p>";
+    const rv=ressalva(g,P,R);
+    if(rv) h+='<p class="price" style="color:var(--warn)">'+esc(rv)+"</p>";
+    if(P.forçados.includes(g.id))
+      h+='<p class="price" style="color:var(--warn)">Fora do filtro que você marcou, mas entrou porque sobrou pouca coisa dentro dele.</p>';
+    if(pl.n) h+='<div class="plan"><div><b>'+pl.n+'</b><small>sachês</small></div>'+
+       '<div><b>'+Math.round(pl.iv)+'</b><small>min entre eles</small></div>'+
+       '<div><b>'+pl.gh+'</b><small>'+(P.fatiaGel<1?"g/h em gel":"g por hora")+'</small></div></div>';
+    h+='<p class="price">Faixa estimada: '+FAIXA[g.pt]+' por sachê. Confira o preço do dia no link.</p>';
+    h+='<div class="buys"><a class="buy" href="'+amz(g.n+" gel carboidrato")+'" target="_blank" rel="noopener nofollow">Amazon</a>'+
+       '<a class="buy" href="'+ml(g.n+" gel carboidrato")+'" target="_blank" rel="noopener nofollow">Mercado Livre</a></div></div></div>';
+  });
+  h+="</div>";
+
+  /* linha do tempo com o gel número 1 */
+  const g1=P.podio[0], L=g1?P.linha(g1):null;
+  if(L && L.pl.n){
+    h+='<div class="sec"><div class="sec-h"><h3>A prova minuto a minuto</h3><span class="tag">com o '+esc(g1.n)+"</span></div>";
+    if(L.ns.length>14){
+      h+='<div class="track">';
+      h+=no({km:"largada",clock:"−15 min",cls:"edge",tit:P.preGel?P.preGel.n:"Gel pré-largada",txt:"1 sachê com goles de água."});
+      h+=no({km:"ciclo",clock:Math.round(L.pl.iv)+" min",cls:"",tit:g1.n,
+             txt:L.pl.n+" sachês ao longo da prova, um a cada "+Math.round(L.pl.iv)+" minutos. Entre eles, comida dos postos."});
+      if(L.nCaf) h+=no({km:"cafeína",clock:L.nCaf+"×",cls:"caf",tit:"Doses de cafeína",
+             txt:"Desses sachês, "+L.nCaf+" na versão com cafeína.",chip:P.cafDose});
+      h+=no({km:P.D.km+" km",clock:fmt(P.T),cls:"edge",tit:"Chegada",txt:""});
+      h+="</div>";
+    } else {
+      h+='<div class="track">'+L.ns.map(n=>no({
+        km: n.t<0 ? "largada" : (n.km).toFixed(n.km<10?1:0)+" km",
+        clock: n.t<0 ? "−15 min" : relogio(n.t),
+        cls: n.tipo==="edge" ? "edge" : n.caf ? "caf" : "",
+        tit: n.tit, txt: n.txt, chip: n.caf ? "com cafeína · "+P.cafDose : ""
+      })).join("")+"</div>";
+    }
+    h+="</div>";
+  }
+
+  /* evite */
+  if(P.evite.length){
+    h+='<div class="sec"><div class="sec-h"><h3>Evite esses</h3><span class="tag">pelo seu perfil</span></div><div class="avoid">';
+    P.evite.forEach(e=> h+='<div class="av"><span class="x">×</span><span><b>'+esc(e.g.n)+"</b><span>"+esc(e.m)+"</span></span></div>");
+    h+="</div></div>";
+  }
+
+  /* pré-largada */
+  if(P.preGel && P.fase!=="pre") h+='<div class="sec"><div class="note"><b>Antes da largada:</b> 1 sachê de '+esc(P.preGel.n)+
+    " com goles de água, 15 minutos antes. Vale principalmente se o café da manhã foi muito cedo.</div></div>";
+  if(P.fase==="pre") h+='<div class="sec"><div class="note">Em 5 km o gel vai antes da largada, nunca durante. Um sachê com goles de água, 10 a 15 minutos antes, e só vale a pena se você não comeu nada de manhã ou vai forçar o ritmo.</div></div>';
+
+  /* sódio e teste da balança */
+  if(g1 && L && L.pl.n){
+    const naH = g1.na!=null ? Math.round(g1.na*(L.pl.n/P.horas)) : null;
+    const falta = naH!=null ? Math.max(0, P.naAlvo-naH) : null;
+    h+='<div class="sec"><div class="sec-h"><h3>Sódio</h3></div><div class="note">'+
+      (naH==null ? "O fabricante do "+esc(g1.n)+" não informa o sódio. Conte com bebida eletrolítica ou cápsula de sal à parte."
+       : falta>150 ? "Os sachês entregam cerca de "+naH+" mg por hora e a sua meta é "+P.naAlvo+
+         " mg. Faltam uns "+falta+" mg por hora, que você completa com bebida eletrolítica ou cápsula de sal."
+       : "Os sachês já cobrem quase toda a sua meta, cerca de "+naH+" mg por hora. Beba água nos postos e pronto.")+"</div>";
+    h+='<details class="bal"><summary>Medir seu suor de verdade (teste da balança)</summary><div class="inner">'+
+      '<p style="font-size:13.5px;color:var(--ink2);line-height:1.5">No próximo longão: pese-se sem roupa antes de sair, corra 60 minutos no ritmo alvo anotando quanto bebeu, seque-se e pese de novo. Se urinou no meio, some 300 ml ao que bebeu.</p>'+
+      '<div class="bal-f"><label>Peso antes (kg)<input type="number" step="0.1" id="b1" value="'+esc(R.b1||"")+'"></label>'+
+      '<label>Peso depois (kg)<input type="number" step="0.1" id="b2" value="'+esc(R.b2||"")+'"></label>'+
+      '<label>Bebeu (ml)<input type="number" step="50" id="b3" value="'+esc(R.b3||"")+'"></label></div>'+
+      '<div class="bal-out" id="balout">Preencha os três campos.</div></div></details></div>';
+  }
+
+  /* kit da prova */
+  if(g1){
+    const pl=P.plano(g1), total=pl.n+(P.preGel?1:0);
+    h+='<div class="sec"><div class="sec-h"><h3>Kit da prova</h3><span class="tag">o que comprar</span></div><div class="kit">';
+    if(P.preGel) h+='<div class="kr"><span>'+esc(P.preGel.n)+" · pré-largada</span><b>1 un</b></div>";
+    if(pl.n) h+='<div class="kr"><span>'+esc(g1.n)+"</span><b>"+pl.n+" un</b></div>";
+    if(L && L.nCaf) h+='<div class="kr"><span>Desses, na versão com cafeína</span><b>'+L.nCaf+" un</b></div>";
+    h+='<div class="kr"><span>Pra testar nos treinos longos antes</span><b>+'+Math.max(2,Math.round(total*0.6))+" un</b></div>";
+    h+='<div class="kr"><span>Total a comprar</span><b>'+(total+Math.max(2,Math.round(total*0.6)))+" un</b></div>";
+    h+='<div class="buys" style="margin-top:14px"><a class="buy" href="'+amz(g1.n+" gel carboidrato")+
+       '" target="_blank" rel="noopener nofollow">Amazon</a><a class="buy" href="'+ml(g1.n+" gel carboidrato")+
+       '" target="_blank" rel="noopener nofollow">Mercado Livre</a></div></div></div>';
+  }
+
+  /* afinar */
+  h+='<div class="sec"><div class="sec-h"><h3>Afinar o resultado</h3></div><div class="tune">';
+  h+=tuneRow("Cafeína","caf",[["nao","Não uso"],["mod","Uso moderado"],["alta","Tolerância alta"]]);
+  h+=tuneRow("Textura","tx",[["tanto","Tanto faz"],["fluido","Fluido"],["denso","Encorpado"]]);
+  h+=tuneRow("Sabor","sb",[["tanto","Tanto faz"],["doce","Doce"],["neutro","Neutro"],["citrico","Cítrico"],["mentol","Mentol"]]);
+  h+=tuneRow("Preço por sachê","pt",[[1,"até R$ 8"],[2,"até R$ 13"],[3,"tanto faz"]]);
+  h+=tuneRow("Clean label","cl",[["tanto","Tanto faz"],["sim","Sem corante nem sabor artificial"]]);
+  h+='<div class="row"><div class="lab">Você já quebrou em alguma prova?</div>'+
+     '<input type="number" id="qkm" min="1" max="200" placeholder="km" value="'+esc(R.quebrou)+'"> '+
+     '<span style="font-size:13.5px;color:var(--ink2)">em qual km</span></div>';
+  h+="</div></div>";
+
+  if(R.quebrou){
+    const km=+R.quebrou, g=P.podio[0], pl=P.plano(g);
+    if(pl.n && km<P.D.km){
+      const t=(km/P.D.km)*P.T, nth=Math.max(1,Math.ceil(t/pl.iv));
+      h+='<div class="sec"><div class="note">No seu km '+km+" esse plano já colocou "+Math.min(nth,pl.n)+
+         (Math.min(nth,pl.n)>1?" sachês":" sachê")+" dentro de você. Foi exatamente aí que faltou combustível da última vez.</div></div>";
+    }
+  }
+
+  /* story */
+  const pl1=P.plano(g1);
+  h+='<div class="sec"><div class="sec-h"><h3>Pro Story</h3><span class="tag">tire print</span></div><div class="story">';
+  h+='<div class="sm"><i></i>Carbô</div>';
+  h+='<div><div class="sr">'+esc(nomeProva)+'</div><h4>Meu gel<br>da prova</h4>';
+  h+='<div class="pick"><b>'+esc(g1.n)+'</b><span>'+g1.c+" g carbo"+(g1.na!=null?" · "+g1.na+" mg sódio":"")+"</span></div>";
+  h+='<div class="sg"><div><b>'+(pl1.n||1)+'</b><small>sachês</small></div><div><b>'+P.ghPlano+'</b><small>g por hora</small></div>'+
+     '<div><b>'+fmt(P.T)+"</b><small>alvo</small></div></div></div>";
+  h+='<div class="ft">carbô · plano de prova</div></div></div>';
+
+  h+='<div class="sec"><div class="note">Nenhuma estratégia estreia no dia da prova. Teste esse kit inteiro em pelo menos dois treinos longos, com os mesmos sachês e nos mesmos intervalos.</div></div>';
+  h+='<div class="nav" style="margin-top:24px"><button class="btn ghost" id="redo" style="flex:1">Refazer</button></div>';
+  h+='<div class="legal"><p>Links de afiliado. O preço pra você é o mesmo, e a ordem do pódio sai de critério técnico, nunca de comissão.</p>'+
+     '<p>Base técnica do Gel Book, de Carla Bogéa, revisão 2026. Conteúdo educativo, não substitui consulta e prescrição individual com nutricionista.</p>'+
+     '<p>Composição conforme informada pelos fabricantes. Faixas de preço são estimativas. Confira sempre o rótulo do lote que você comprar.</p></div>';
+
+  app.innerHTML=h;
+  scrollTo(0,0);
+  app.querySelectorAll("[data-tk]").forEach(b=>b.addEventListener("click",()=>{
+    const k=b.dataset.tk, v=b.dataset.tv;
+    R[k] = (k==="pt") ? +v : v;
+    resultado();
+  }));
+  document.getElementById("qkm")?.addEventListener("change",e=>{ R.quebrou=e.target.value; resultado(); });
+  ["b1","b2","b3"].forEach(id=>document.getElementById(id)?.addEventListener("input",balanca));
+  if(R.b1&&R.b2&&R.b3) balanca();
+  document.getElementById("redo").addEventListener("click",()=>{ i=0; passo(); scrollTo(0,0); });
+}
+
+const relogio=m=>{const h=Math.floor(m/60),r=Math.round(m%60);return h+":"+String(r).padStart(2,"0");};
+
+function no(o){
+  return '<div class="node '+(o.cls||"")+'"><div class="pin"><div class="km">'+esc(o.km)+
+    '</div><div class="clock">'+esc(o.clock)+'</div><div class="dot"></div></div><div class="card"><b>'+
+    esc(o.tit)+"</b>"+(o.txt?"<p>"+esc(o.txt)+"</p>":"")+(o.chip?'<span class="minichip">'+esc(o.chip)+"</span>":"")+"</div></div>";
+}
+
+function balanca(){
+  const v=id=>parseFloat(document.getElementById(id)?.value);
+  const b1=v("b1"), b2=v("b2"), b3=v("b3"), out=document.getElementById("balout");
+  if(!out) return;
+  R.b1=document.getElementById("b1").value; R.b2=document.getElementById("b2").value; R.b3=document.getElementById("b3").value;
+  if(!(b1>0&&b2>0&&b3>=0)){ out.textContent="Preencha os três campos."; return; }
+  const litros=(b1-b2)+(b3/1000);
+  if(litros<=0){ out.textContent="Esses números dão perda zero. Confira se o peso de depois não ficou maior."; return; }
+  const conc = R.suor==="high"?1200:R.suor==="mid"?800:500;      /* mg de sódio por litro, estimado pelo que você respondeu */
+  const na=Math.round(litros*conc);
+  R.naMedido=na;
+  out.innerHTML="Você perde cerca de <b>"+litros.toFixed(1)+" L por hora</b>, o que dá uns <b>"+na+
+    " mg de sódio por hora</b>. Esse número agora manda no seu plano.";
+}
+
+function tuneRow(lab,k,pares){
+  return '<div class="row"><div class="lab">'+lab+'</div><div class="chips">'+
+    pares.map(([v,t])=>'<button class="chip" data-tk="'+k+'" data-tv="'+v+'" aria-pressed="'+(R[k]==v)+'">'+t+"</button>").join("")+
+    "</div></div>";
+}
+
+function ressalva(g,P,a){
+  const pl=P.plano(g);
+  if(!pl.n) return "";
+  if(g.na==null) return "O fabricante não informa o sódio, então conte com reposição à parte.";
+  const cobre = g.na*(pl.n/P.horas)/P.naAlvo;
+  if(cobre < .3) return "Entrega só cerca de "+Math.round(g.na*(pl.n/P.horas))+" mg de sódio por hora contra os "+
+    P.naAlvo+" mg que o seu suor pede. Se for esse, leve cápsula de sal ou bebida eletrolítica junto.";
+  return "";
+}
+
+function porque(g,P,a,idx){
+  const r=[];
+  if(a.mal!=="nao" && g.hid) r.push("é hidrogel, o formato que menos pesa no estômago hoje no mercado");
+  else if(a.mal!=="nao" && !g.pal) r.push("não leva palatinose, que costuma ser a causa do estufamento");
+  if(g.r && P.ghPlano>60) r.push("a proporção "+g.r+" usa dois transportadores intestinais e sustenta "+P.ghPlano+" g por hora");
+  else if(g.r) r.push("tem mix de glicose e frutose, que absorve melhor que carboidrato único");
+  const pl0=P.plano(g);
+  if(g.na!=null && a.suor!=="low" && pl0.n && g.na*(pl0.n/P.horas) >= P.naAlvo*0.45)
+    r.push("os "+g.na+" mg de sódio por sachê seguram boa parte da sua reposição");
+  if(a.calor==="sim" && g.sb.includes("mentol")) r.push("tem versão mentol, que alivia a percepção do calor");
+  if(a.exp==="nunca" && g.c<=25) r.push("sachê pequeno, que é por onde se começa a treinar o intestino");
+  if(idx===1) r.push("sai mais barato que o primeiro sem abrir mão do essencial");
+  if(idx===2 && g.hid) r.push("é a escolha pra quando o estômago aperta no meio da prova");
+  const pl=P.plano(g);
+  if(pl.n) r.push("o sachê de "+g.c+" g cai num intervalo de "+Math.round(pl.iv)+" minutos, confortável de administrar correndo");
+  return "Escolhido porque "+r.slice(0,3).join("; ")+".";
+}
+
+passo();
+</script>
+<script>
+if("serviceWorker" in navigator) addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
