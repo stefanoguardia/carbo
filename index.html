@@ -232,7 +232,6 @@ details.bal .inner{padding-bottom:16px;border-top:1px solid var(--line);padding-
 
 
 <style>
-/* no artifact o esqueleto já dava isso; aqui precisa ser explícito */
 html{-webkit-text-size-adjust:100%}
 body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 </style>
@@ -288,12 +287,12 @@ const PASSOS=[
  {v:"ultra",k:"42+",t:"Ultra ou trail", d:"Gel alternado com comida de verdade"}]},
 {k:"tempo",e:"O alvo",q:"Em quanto tempo você termina?",slider:true,
  hint:"Arraste até o seu tempo. Se não souber, use o que você fez numa prova parecida."},
-{k:"exp",e:"Seu intestino",q:"Você já treina tomando gel?",
+{k:"exp",e:"Seu intestino",q:"Você já treina tomando gel?",when:r=>r.dist!=="5",
  hint:"Tolerância a carboidrato se treina, igual músculo. É isso que define quanto você aguenta por hora hoje.",opts:[
  {v:"nunca",k:"0",  t:"Nunca tomei, ou quase",   d:"Começamos leve e sem cafeína"},
  {v:"as",   k:"½",  t:"Às vezes, em longão",     d:"Já tem alguma tolerância construída"},
  {v:"sim",  k:"1",  t:"Em todo treino longo",    d:"Estômago treinado, dá pra ir alto"}]},
-{k:"atual",e:"Seu intestino",q:"Quanto você costuma tomar por hora hoje?",when:r=>r.exp==="sim",opts:[
+{k:"atual",e:"Seu intestino",q:"Quanto você costuma tomar por hora hoje?",when:r=>r.dist!=="5"&&r.exp==="sim",opts:[
  {v:"40",k:"40", t:"Cerca de 40 g por hora", d:"Um sachê a cada 35 ou 40 minutos"},
  {v:"60",k:"60", t:"Cerca de 60 g por hora", d:"Dois sachês por hora, mais ou menos"},
  {v:"80",k:"80", t:"80 g ou mais por hora",  d:"Você já treinou bem esse estômago"},
@@ -303,12 +302,12 @@ const PASSOS=[
  {v:"nao", k:"Não",t:"Nunca aconteceu",     d:"Catálogo aberto pra você"},
  {v:"as",  k:"1x", t:"Uma vez ou outra",    d:"Corto a palatinose do seu plano"},
  {v:"sim", k:"Sim",t:"Acontece com frequência", d:"Vou direto pro que menos pesa no estômago"}]},
-{k:"suor",e:"Seu suor",q:"Como você sua correndo?",
+{k:"suor",e:"Seu suor",q:"Como você sua correndo?",when:r=>r.dist!=="5",
  hint:"Se já reparou em marca branca de sal na pele ou no boné depois do longão, isso conta.",opts:[
  {v:"low", k:"-",  t:"Suo pouco",            d:"Roupa seca rápido, sem marca de sal"},
  {v:"mid", k:"+",  t:"Suo normal",           d:"Camisa encharca, às vezes aparece sal"},
  {v:"high",k:"++", t:"Suo muito",            d:"Pinga, e fica marca branca na roupa ou no boné"}]},
-{k:"calor",e:"O dia",q:"Como vai estar o tempo?",opts:[
+{k:"calor",e:"O dia",q:"Como vai estar o tempo?",when:r=>r.dist!=="5",opts:[
  {v:"sim", k:"28°",t:"Quente ou abafado", d:"Mais sódio, gel fluido, sabor refrescante"},
  {v:"nao", k:"20°",t:"Ameno",             d:"Clima bom pra correr"},
  {v:"frio",k:"12°",t:"Frio",              d:"Você perde menos sal, mas bebe menos também"}]}
@@ -366,7 +365,15 @@ function motor(a){
   let vivos = duros.filter(mole);
   const forçados = [];
   if(vivos.length < 3){
-    duros.filter(g=>!mole(g)).forEach(g=>{ forçados.push(g.id); vivos.push(g); });
+    /* traz de volta só o necessário pra fechar o pódio, começando pelos que menos violam o filtro */
+    const fila = duros.filter(g=>!mole(g))
+      .sort((x,y)=>(x.pt-a.pt)-(y.pt-a.pt) || x.pt-y.pt)
+      .slice(0, 3-vivos.length);
+    fila.forEach(g=>{ forçados.push(g.id); vivos.push(g); });
+    duros.filter(g=>!mole(g) && !forçados.includes(g.id)).forEach(g=>{
+      if(!motivos.has(g.id)) motivos.set(g.id, g.pt>a.pt ? "fica acima da faixa de preço que você escolheu"
+                                                         : "não tem versão com cafeína, e você pediu cafeína");
+    });
   } else {
     duros.filter(g=>!mole(g)).forEach(g=>{
       if(!motivos.has(g.id)) motivos.set(g.id, g.pt>a.pt ? "fica acima da faixa de preço que você escolheu"
@@ -376,6 +383,22 @@ function motor(a){
 
   const pontuados = vivos.map(g=>{
     let s=0;
+    if(fase==="pre"){
+      /* sachê único antes da largada: proporção, sódio, hidrogel e sabor refrescante
+         não têm efeito nenhum aqui. Manda o preço, a textura e o tamanho da dose. */
+      s += (3-g.pt)*20;
+      if(g.c>=20 && g.c<=25) s+=12;
+      if(g.tx==="fluido") s+=10;
+      if(a.tx!=="tanto" && g.tx===a.tx) s+=12;
+      if(a.sb!=="tanto" && g.sb.includes(a.sb)) s+=12;
+      if(a.cl==="sim" && g.cl) s+=15;
+      if(querCaf && g.caf) s+=10;
+      if(g.f.includes("dur")) s+=4;   /* serve também nas provas longas, um produto só */
+      if(g.cl) s+=3;
+      if(g.na!=null) s+=2;            /* fabricante que informa o rótulo inteiro */
+      if(forçados.includes(g.id)) s-=40;
+      return {g,s};
+    }
     if(ghPlano>0){
       const iv=(g.c/ghPlano)*60;
       s += (iv>=22&&iv<=42) ? 30 : (iv>=18&&iv<=50) ? 14 : 0;
@@ -402,12 +425,15 @@ function motor(a){
   const p1 = pontuados[0]?.g;
   const maisBarato = pontuados.find(c=>c.g!==p1 && p1 && c.g.pt < p1.pt)?.g;
   const p2 = maisBarato || pontuados.find(c=>c.g!==p1)?.g;
-  const tranquilo = pontuados.find(c=>c.g!==p1 && c.g!==p2 && (c.g.hid || (c.g.r && !c.g.pal)))?.g;
+  const tranquilo = fase==="pre" ? null
+    : pontuados.find(c=>c.g!==p1 && c.g!==p2 && (c.g.hid || (c.g.r && !c.g.pal)))?.g;
   const p3 = tranquilo || pontuados.find(c=>c.g!==p1 && c.g!==p2)?.g;
   const podio = [p1,p2,p3].filter(Boolean).filter((g,i,arr)=>arr.indexOf(g)===i);
-  const papeis = ["Pra você",
-                  maisBarato ? "Mais em conta" : "Boa alternativa",
-                  tranquilo ? (tranquilo.hid ? "Estômago tranquilo" : "Terceira opção") : "Terceira opção"];
+  const papeis = fase==="pre"
+    ? ["Pra você","Segunda opção","Terceira opção"]
+    : ["Pra você",
+       maisBarato ? "Mais em conta" : "Boa alternativa",
+       tranquilo ? (tranquilo.hid ? "Estômago tranquilo" : "Terceira opção") : "Terceira opção"];
 
   /* plano de sachês para um gel qualquer */
   const plano = g => {
@@ -543,9 +569,13 @@ function resultado(){
   if(P.ghPlano) h+='<span class="tag">'+P.ghPlano+" g/h</span>";
   if(P.ghPlano) h+='<span class="tag">'+P.naAlvo+" mg sódio/h</span>";
   h+='<span class="tag">'+(R.mal==="nao"?"sem histórico de desconforto":R.mal==="as"?"estômago meio sensível":"estômago sensível")+"</span>";
-  h+='<span class="tag">'+(R.calor==="sim"?"calor":R.calor==="frio"?"frio":"clima ameno")+"</span></div></div>";
+  if(P.fase!=="pre") h+='<span class="tag">'+(R.calor==="sim"?"calor":R.calor==="frio"?"frio":"clima ameno")+"</span>";
+  h+="</div></div>";
 
-  /* escada do intestino */
+  /* escada do intestino — só faz sentido onde existe consumo durante a prova */
+  if(P.ghPlano===0){
+    h+='<div class="sec"><div class="note">Em 5 km não há escada de carboidrato pra subir: a prova é curta demais pra que o que você come durante mude o resultado. Seu estoque de glicogênio dá conta sozinho.</div></div>';
+  } else {
   h+='<div class="sec"><div class="sec-h"><h3>A sua escada</h3></div><div class="ladder"><div class="top">'+
      '<div class="big">'+P.ghPlano+'</div><div class="u">g de carboidrato<br>por hora, hoje</div></div>';
   const degraus=[30,40,50,60,70,80,90,100,110,120];
@@ -556,9 +586,8 @@ function resultado(){
   }).join("")+'</div><div class="lad-lab"><span>30</span><span>120 g/h</span></div>';
   h+="<p>"+(P.semanas
     ? "Pra essa distância a referência é "+P.ideal+" g por hora. Subindo 10 g a cada duas semanas, você chega lá em cerca de "+P.semanas+" semanas de treino longo. Até lá o plano trabalha com o que seu estômago aguenta hoje."
-    : P.ghPlano===0
-      ? "Nessa distância o gel durante a prova não muda resultado. O que vale é o sachê antes da largada."
-      : "Você já está na faixa que a distância pede. O plano abaixo usa isso.")+"</p></div></div>";
+    : "Você já está na faixa que a distância pede. O plano abaixo usa isso.")+"</p></div></div>";
+  }
 
   /* pódio */
   h+='<div class="sec"><div class="sec-h"><h3>'+(P.fase==="pre"?"O pódio da largada":"O pódio")+
@@ -567,12 +596,18 @@ function resultado(){
     const pl=P.plano(g);
     h+='<div class="pod pod'+(idx+1)+'"><div class="pod-top"><div class="rk">'+(idx+1)+'</div>'+
        '<div class="role">'+P.papeis[idx]+'</div><div class="nm">'+esc(g.n)+'</div>'+
-       '<div class="sp">'+g.c+" g carbo"+(g.na!=null?" · "+g.na+" mg sódio":" · sódio não informado")+(g.r?" · "+g.r:"")+"</div></div>";
+       '<div class="sp">'+(P.fase==="pre"
+          ? g.c+" g carbo · "+g.d
+          : g.c+" g carbo"+(g.na!=null?" · "+g.na+" mg sódio":" · sódio não informado")+(g.r?" · "+g.r:""))+"</div></div>";
     h+='<div class="pod-body"><p class="why">'+esc(porque(g,P,R,idx))+"</p>";
     const rv=ressalva(g,P,R);
     if(rv) h+='<p class="price" style="color:var(--warn)">'+esc(rv)+"</p>";
-    if(P.forçados.includes(g.id))
-      h+='<p class="price" style="color:var(--warn)">Fora do filtro que você marcou, mas entrou porque sobrou pouca coisa dentro dele.</p>';
+    if(P.forçados.includes(g.id)){
+      const pq = g.pt > R.pt ? "Custa mais que a faixa de preço que você marcou"
+                             : "Não tem versão com cafeína, e você marcou que usa";
+      h+='<p class="price" style="color:var(--warn)">'+pq+
+         ". Entrou assim mesmo porque quase nenhum gel do catálogo coube nos filtros que você escolheu.</p>";
+    }
     if(pl.n) h+='<div class="plan"><div><b>'+pl.n+'</b><small>sachês</small></div>'+
        '<div><b>'+Math.round(pl.iv)+'</b><small>min entre eles</small></div>'+
        '<div><b>'+pl.gh+'</b><small>'+(P.fatiaGel<1?"g/h em gel":"g por hora")+'</small></div></div>';
@@ -616,7 +651,7 @@ function resultado(){
   /* pré-largada */
   if(P.preGel && P.fase!=="pre") h+='<div class="sec"><div class="note"><b>Antes da largada:</b> 1 sachê de '+esc(P.preGel.n)+
     " com goles de água, 15 minutos antes. Vale principalmente se o café da manhã foi muito cedo.</div></div>";
-  if(P.fase==="pre") h+='<div class="sec"><div class="note">Em 5 km o gel vai antes da largada, nunca durante. Um sachê com goles de água, 10 a 15 minutos antes, e só vale a pena se você não comeu nada de manhã ou vai forçar o ritmo.</div></div>';
+  if(P.fase==="pre") h+='<div class="sec"><div class="note">Em 5 km o gel vai antes da largada, nunca durante. Um sachê com goles de água, 10 a 15 minutos antes. E só vale a pena em dois casos: se você vai largar com mais de 1 hora sem comer nada, ou se pretende forçar o ritmo.</div></div>';
 
   /* sódio e teste da balança */
   if(g1 && L && L.pl.n){
@@ -637,12 +672,15 @@ function resultado(){
 
   /* kit da prova */
   if(g1){
-    const pl=P.plano(g1), total=pl.n+(P.preGel?1:0);
+    const pl=P.plano(g1), ehPre=P.fase==="pre";
+    const total=ehPre ? 1 : pl.n+(P.preGel?1:0);
     h+='<div class="sec"><div class="sec-h"><h3>Kit da prova</h3><span class="tag">o que comprar</span></div><div class="kit">';
-    if(P.preGel) h+='<div class="kr"><span>'+esc(P.preGel.n)+" · pré-largada</span><b>1 un</b></div>";
+    if(ehPre) h+='<div class="kr"><span>'+esc(g1.n)+" · pré-largada</span><b>1 un</b></div>";
+    else if(P.preGel) h+='<div class="kr"><span>'+esc(P.preGel.n)+" · pré-largada</span><b>1 un</b></div>";
     if(pl.n) h+='<div class="kr"><span>'+esc(g1.n)+"</span><b>"+pl.n+" un</b></div>";
     if(L && L.nCaf) h+='<div class="kr"><span>Desses, na versão com cafeína</span><b>'+L.nCaf+" un</b></div>";
-    h+='<div class="kr"><span>Pra testar nos treinos longos antes</span><b>+'+Math.max(2,Math.round(total*0.6))+" un</b></div>";
+    h+='<div class="kr"><span>'+(ehPre?"Pra testar em treino antes":"Pra testar nos treinos longos antes")+
+       "</span><b>+"+Math.max(2,Math.round(total*0.6))+" un</b></div>";
     h+='<div class="kr"><span>Total a comprar</span><b>'+(total+Math.max(2,Math.round(total*0.6)))+" un</b></div>";
     h+='<div class="buys" style="margin-top:14px"><a class="buy" href="'+amz(g1.n+" gel carboidrato")+
        '" target="_blank" rel="noopener nofollow">Amazon</a><a class="buy" href="'+ml(g1.n+" gel carboidrato")+
@@ -676,8 +714,11 @@ function resultado(){
   h+='<div class="sm"><i></i>Carbô</div>';
   h+='<div><div class="sr">'+esc(nomeProva)+'</div><h4>Meu gel<br>da prova</h4>';
   h+='<div class="pick"><b>'+esc(g1.n)+'</b><span>'+g1.c+" g carbo"+(g1.na!=null?" · "+g1.na+" mg sódio":"")+"</span></div>";
-  h+='<div class="sg"><div><b>'+(pl1.n||1)+'</b><small>sachês</small></div><div><b>'+P.ghPlano+'</b><small>g por hora</small></div>'+
-     '<div><b>'+fmt(P.T)+"</b><small>alvo</small></div></div></div>";
+  h+= P.fase==="pre"
+    ? '<div class="sg"><div><b>1</b><small>sachê</small></div><div><b>15</b><small>min antes</small></div>'+
+      '<div><b>'+fmt(P.T)+"</b><small>alvo</small></div></div></div>"
+    : '<div class="sg"><div><b>'+(pl1.n||1)+'</b><small>sachês</small></div><div><b>'+P.ghPlano+'</b><small>g por hora</small></div>'+
+      '<div><b>'+fmt(P.T)+"</b><small>alvo</small></div></div></div>";
   h+='<div class="ft">carbô · plano de prova</div></div></div>';
 
   h+='<div class="sec"><div class="note">Nenhuma estratégia estreia no dia da prova. Teste esse kit inteiro em pelo menos dois treinos longos, com os mesmos sachês e nos mesmos intervalos.</div></div>';
@@ -740,6 +781,17 @@ function ressalva(g,P,a){
 
 function porque(g,P,a,idx){
   const r=[];
+  if(P.fase==="pre"){
+    /* um sachê antes de largar: o que pesa é preço, textura e dose */
+    r.push("está na faixa mais em conta ("+FAIXA[g.pt]+" por sachê)");
+    if(g.tx==="fluido") r.push("é fluido, fácil de engolir mesmo com pouca água");
+    if(g.c>=20&&g.c<=25) r.push("os "+g.c+" g são a dose certa pra um sachê antes de largar");
+    if(a.cl==="sim" && g.cl) r.push("é clean label, sem corante nem sabor artificial");
+    if(a.sb!=="tanto" && g.sb.includes(a.sb)) r.push("tem a versão de sabor que você pediu");
+    if(a.caf!=="nao" && g.caf) r.push("tem versão com cafeína, que cabe antes de uma prova curta");
+    const ord = idx===0 ? r : r.slice(1).concat(r[0]);
+    return "Escolhido porque "+ord.slice(0,3).join("; ")+".";
+  }
   if(a.mal!=="nao" && g.hid) r.push("é hidrogel, o formato que menos pesa no estômago hoje no mercado");
   else if(a.mal!=="nao" && !g.pal) r.push("não leva palatinose, que costuma ser a causa do estufamento");
   if(g.r && P.ghPlano>60) r.push("a proporção "+g.r+" usa dois transportadores intestinais e sustenta "+P.ghPlano+" g por hora");
